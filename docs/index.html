@@ -42,6 +42,8 @@ td:first-child{font-family:var(--mono);white-space:nowrap;padding-right:12px;col
 ul{margin:0;padding-left:18px;font-size:13.5px;display:grid;gap:4px}
 code{font-family:var(--mono);font-size:12.5px}
 .note{font-size:13px;color:var(--muted);margin:0}
+.alt{font-size:12px;color:var(--muted);margin-top:4px}
+.alt b{font-weight:600}
 .bands{display:flex;flex-wrap:wrap;align-items:center;gap:3px;margin-top:4px;font-size:12px;color:var(--muted)}
 .bands b{width:10px;height:15px;border-radius:2px;display:inline-block;border:1px solid var(--line)}
 .bands span{margin:0 8px 0 2px}
@@ -102,20 +104,28 @@ pre .c{color:var(--muted)}
       <section>
         <h2>Parts</h2>
         <table>
-          <tr><td>U1</td><td>ATtiny84A in 14-pin socket, c8–i11, notch on the left</td></tr>
-          <tr><td>LED</td><td>red, anode in a2, leg bent along row 2 on the back to d2 and soldered there; cathode in a3, leg bent on the back to a6</td></tr>
-          <tr><td>C1</td><td>100 nF ceramic, legs through b8 / b11, bent on the back to pin 14 / pin 1 and soldered only there</td></tr>
-          <tr><td>C2</td><td>10–100 µF electrolytic, 6.3 V or more, standing, + a5, − b5. Legs bent on the back to a6 and c5, no solder on a5 and b5</td></tr>
+          <tr><td>U1</td><td>ATtiny84A in 14-pin socket, c8–i11, notch on the left
+            <div class="alt"><b>Also ok:</b> ATtiny84 (without A). ATtiny44A or 24A should work too (the sketch needs 1.4 KB flash and 35 bytes RAM; builds, not tested on hardware). Select the chip accordingly. Soldering it in without a socket works, but then it can't be reflashed</div></td></tr>
+          <tr><td>LED</td><td>red, anode in a2, leg bent along row 2 on the back to d2 and soldered there; cathode in a3, leg bent on the back to a6
+            <div class="alt"><b>Also ok (6 V BEC):</b> any 3 or 5 mm LED with 1.7–2.2 V forward voltage: red, orange, yellow, classic green. Not white, blue or bright true-green (≈3 V, too little left for the ATtiny). Other BECs: see table below</div></td></tr>
+          <tr><td>C1</td><td>100 nF ceramic, legs through b8 / b11, bent on the back to pin 14 / pin 1 and soldered only there
+            <div class="alt"><b>Also ok:</b> any ceramic 47 nF–1 µF (marked 473, 104, 224, 474, 105)</div></td></tr>
+          <tr><td>C2</td><td>10–100 µF electrolytic, 6.3 V or more, standing, + a5, − b5. Legs bent on the back to a6 and c5, no solder on a5 and b5
+            <div class="alt"><b>Also ok:</b> 4.7–220 µF, any voltage rating ≥ 6.3 V; a 10 µF ceramic or tantalum works too (tantalum: mind the polarity)</div></td></tr>
           <tr><td>R1, R2</td><td>4k7, d4–d7 and e4–e7
             <div class="bands" title="yellow violet red gold / yellow violet black brown brown"><b style="background:#f2c90f"></b><b style="background:#7b3fb0"></b><b style="background:#c62828"></b><b style="background:#c9a33a"></b><span>4-band</span><b style="background:#f2c90f"></b><b style="background:#7b3fb0"></b><b style="background:#1b1b1b"></b><b style="background:#7a4a1e"></b><b style="background:#7a4a1e"></b><span>5-band</span></div>
-            <div class="bands">yellow · violet · red · gold &nbsp;|&nbsp; yellow · violet · black · brown · brown</div></td></tr>
+            <div class="bands">yellow · violet · red · gold &nbsp;|&nbsp; yellow · violet · black · brown · brown</div>
+            <div class="alt"><b>Also ok:</b> anything 1 k–10 k (e.g. 2k2, 3k3, 10 k), R1 and R2 don't even have to match</div></td></tr>
           <tr><td>R3</td><td>1 k, i4–i7 (protects pin 8 if a plug is reversed)
             <div class="bands"><b style="background:#7a4a1e"></b><b style="background:#1b1b1b"></b><b style="background:#c62828"></b><b style="background:#c9a33a"></b><span>4-band</span><b style="background:#7a4a1e"></b><b style="background:#1b1b1b"></b><b style="background:#1b1b1b"></b><b style="background:#7a4a1e"></b><b style="background:#7a4a1e"></b><span>5-band</span></div>
-            <div class="bands">brown · black · red · gold &nbsp;|&nbsp; brown · black · black · brown · brown</div></td></tr>
+            <div class="bands">brown · black · red · gold &nbsp;|&nbsp; brown · black · black · brown · brown</div>
+            <div class="alt"><b>Also ok:</b> 330 Ω–2k2 (e.g. 470, 680, 2k2). Below 330 Ω the protection gets weak</div></td></tr>
           <tr><td>R4</td><td>10 k reset pull-up, c12–f12, legs bent on the back to pin 1 / pin 4 and soldered only there
             <div class="bands"><b style="background:#7a4a1e"></b><b style="background:#1b1b1b"></b><b style="background:#ef7d1a"></b><b style="background:#c9a33a"></b><span>4-band</span><b style="background:#7a4a1e"></b><b style="background:#1b1b1b"></b><b style="background:#1b1b1b"></b><b style="background:#c62828"></b><b style="background:#7a4a1e"></b><span>5-band</span></div>
-            <div class="bands">brown · black · orange · gold &nbsp;|&nbsp; brown · black · black · red · brown</div></td></tr>
-          <tr><td>J1–J3</td><td>3-pin headers, columns d / e / i, − at the top</td></tr>
+            <div class="bands">brown · black · orange · gold &nbsp;|&nbsp; brown · black · black · red · brown</div>
+            <div class="alt"><b>Also ok:</b> 4k7–47 k</div></td></tr>
+          <tr><td>J1–J3</td><td>3-pin headers, columns d / e / i, − at the top
+            <div class="alt"><b>Also ok:</b> any 2.54 mm male pin header, cut to 3 pins (straight or angled)</div></td></tr>
           <tr><td>Rails</td><td>bare wire on the back, row 1 (GND) and row 2 (+6V), each from d to i</td></tr>
         </table>
       </section>
@@ -138,9 +148,9 @@ pre .c{color:var(--muted)}
       <section>
         <h2>Other BEC voltages</h2>
         <table>
-          <tr><td>5 V</td><td>1N4148 instead of the LED, band towards a3</td></tr>
-          <tr><td>6 V</td><td>red or yellow LED</td></tr>
-          <tr><td>7.4 V</td><td>white or blue LED</td></tr>
+          <tr><td>5 V</td><td>1N4148 instead of the LED, band towards a3. Also ok: 1N4001–1N4007, 1N5817/1N5819, or a wire bridge (no power indicator then)</td></tr>
+          <tr><td>6 V</td><td>red or yellow LED. Also ok: orange or classic green LED</td></tr>
+          <tr><td>7.4 V</td><td>white or blue LED, measure to confirm</td></tr>
         </table>
       </section>
     </aside>
@@ -447,7 +457,7 @@ void loop() {
       <p class="note">All three headers: − at the top (board edge), + in the middle, signal at the bottom. Receiver and steering servo are powered through the board's rails.</p>
 
       <h3>Programming</h3>
-      <p>Flash the chip with any ISP programmer, e.g. an Arduino as ISP on a breadboard (see the separate <i>attiny-isp-breadboard</i> guide). Program it off the board, never in the socket with ESC and receiver attached.</p>
+      <p>Flash the chip with any ISP programmer, e.g. an Arduino as ISP on a breadboard (see <a href="https://github.com/rolandkohn/attiny-isp-breadboard">attiny-isp-breadboard</a>: a permanent Nano-as-ISP setup on a half-size breadboard, no soldering). Program it off the board, never in the socket with ESC and receiver attached.</p>
       <table>
         <tr><td>Core</td><td>ATTinyCore</td></tr>
         <tr><td>Board / chip</td><td><code>ATtiny24/44/84(a) (No bootloader)</code> / <code>ATtiny84(a)</code></td></tr>
@@ -484,10 +494,11 @@ void loop() {
       <h3>Voltage variants</h3>
       <p>Target is 4.0 to 4.5 V at the ATtiny. The part in a2/a3 drops the BEC voltage by its forward voltage.</p>
       <table>
-        <tr><td>5 V BEC</td><td>1N4148, band towards a3, approx. 4.4 V</td></tr>
-        <tr><td>6 V BEC</td><td>red or yellow LED, approx. 4.1 V</td></tr>
+        <tr><td>5 V BEC</td><td>1N4148, band towards a3, approx. 4.4 V. Also ok: 1N4001–1N4007 (≈ 4.3 V), Schottky 1N5817/1N5819 (≈ 4.7 V), or a wire bridge (5 V, no power indicator)</td></tr>
+        <tr><td>6 V BEC</td><td>red or yellow LED, approx. 4.1 V. Also ok: orange or classic green LED</td></tr>
         <tr><td>7.4 V BEC</td><td>white or blue LED, approx. 4.4 V, measure to confirm</td></tr>
       </table>
+      <p>Whatever you use: measure pin 1 ↔ pin 14 before inserting the chip. Anything between 3.0 and 5.5 V works, 4.0–4.5 V is the sweet spot.</p>
 
       <h3>Bypass</h3>
       <p>If the board fails or gets wet: unplug the receiver patch cable and the ESC plug and join them with a piece of pin header (3 pins, plastic carrier pushed to the middle). Keep the adapter on the chassis next to the board.</p>
