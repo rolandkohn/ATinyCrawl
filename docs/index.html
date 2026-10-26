@@ -1,0 +1,565 @@
+<title>ATinyCrawl</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<style>
+/* Layout: werkstatt-blatt, board links gross, stueckliste + checks daneben (stackt auf mobil) */
+:root{
+  --bg:#f3f1ec; --panel:#fbfaf7; --fg:#22211e; --muted:#6b675e; --line:#d9d4c8;
+  --accent:#b5651d; --accent-bg:#f3e3d2;
+  --board:#8a6a3a; --board-edge:#6e5229;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#181715; --panel:#211f1c; --fg:#ece8df; --muted:#a39d91; --line:#3a3631;
+  --accent:#e09a55; --accent-bg:#3a2a1a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#181715; --panel:#211f1c; --fg:#ece8df; --muted:#a39d91; --line:#3a3631;
+  --accent:#e09a55; --accent-bg:#3a2a1a; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 var(--sans);padding-inline:16px;padding-block:24px 40px}
+.wrap{max-width:1080px;margin:0 auto;display:grid;gap:20px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:12px}
+h1{font:500 22px/1.2 var(--sans);margin:0;text-wrap:balance}
+.sub{color:var(--muted);font-size:13px;margin:4px 0 0;font-family:var(--mono)}
+.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button,.chip{font:500 13px var(--sans);color:var(--fg);background:transparent;border:0;padding:7px 12px;cursor:pointer}
+.seg button.on{background:var(--fg);color:var(--bg)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);border-radius:999px;display:inline-flex;align-items:center;gap:6px;padding:5px 11px}
+.chip.on{background:var(--accent-bg);border-color:var(--accent)}
+.chip i{width:10px;height:10px;border-radius:50%;display:inline-block}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.main{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:820px){.main{grid-template-columns:minmax(0,1fr)}}
+.boardbox{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
+#board svg{display:block;margin:0 auto;width:100%;max-width:520px;height:auto}
+aside{display:grid;gap:16px;min-width:0}
+section{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+h2{font:500 13px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+td{padding:5px 0;border-top:1px solid var(--line);vertical-align:top}
+tr:first-child td{border-top:0}
+td:first-child{font-family:var(--mono);white-space:nowrap;padding-right:12px;color:var(--accent)}
+ul{margin:0;padding-left:18px;font-size:13.5px;display:grid;gap:4px}
+code{font-family:var(--mono);font-size:12.5px}
+.note{font-size:13px;color:var(--muted);margin:0}
+.bands{display:flex;flex-wrap:wrap;align-items:center;gap:3px;margin-top:4px;font-size:12px;color:var(--muted)}
+.bands b{width:10px;height:15px;border-radius:2px;display:inline-block;border:1px solid var(--line)}
+.bands span{margin:0 8px 0 2px}
+.seg{flex-wrap:wrap}
+.panel{display:grid;gap:20px}
+.codebox{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;min-width:0}
+.codebar{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line);font:12.5px var(--mono);color:var(--muted)}
+.btn{font:500 13px var(--sans);color:var(--fg);background:transparent;border:1px solid var(--line);border-radius:6px;padding:5px 10px;cursor:pointer}
+pre{margin:0;padding:14px 16px;overflow-x:auto;font:12.5px/1.6 var(--mono);tab-size:2}
+pre .c{color:var(--muted)}
+.doc{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px 22px;max-width:780px;min-width:0}
+.doc h3{font:500 17px/1.3 var(--sans);margin:26px 0 8px;text-wrap:balance}
+.doc h3:first-child{margin-top:0}
+.doc p,.doc li{max-width:68ch;font-size:14.5px}
+.doc ol,.doc ul{padding-left:20px;display:grid;gap:4px}
+.doc pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;margin:10px 0}
+.doc table{margin:6px 0}
+.doc.wide{max-width:none}
+.testhead{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center}
+.ptab{width:100%;border-collapse:collapse;font-size:13.5px}
+.ptab td{padding:7px 8px 7px 0;border-top:1px solid var(--line);vertical-align:top}
+.ptab td:first-child{width:28px;padding-right:4px}
+.ptab td:nth-child(2){font-family:var(--mono);font-size:12.5px;color:var(--accent);white-space:normal;min-width:120px}
+.ptab td:nth-child(3){white-space:nowrap}
+.ptab tr.th td{border-top:0;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-family:var(--sans)}
+.ptab tr:has(input:checked) td{opacity:.5}
+.req{font:500 11px var(--sans);padding:1px 6px;border-radius:4px;background:var(--accent);color:var(--bg);white-space:nowrap;margin-left:4px}
+.onlymust .ptab tr:not(.must):not(.th){display:none}
+.ptab input{width:16px;height:16px;accent-color:var(--accent);margin:2px 0 0}
+.mode{font-size:11.5px;padding:2px 7px;border-radius:999px;border:1px solid var(--line);color:var(--fg)}
+.m-beep{background:#e1f5ee;color:#085041;border-color:#9fe1cb}
+.m-no{background:#fcebeb;color:#791f1f;border-color:#f7c1c1}
+.m-ohm,.m-dio{background:#eeedfe;color:#3c3489;border-color:#cecbf6}
+.m-v{background:#faeeda;color:#633806;border-color:#fac775}
+@media (max-width:560px){.ptab td:nth-child(3){white-space:normal}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>ATinyCrawl</h1>
+      <p class="sub">ATtiny84A · 9 × 12 holes · approx. 23 × 30 mm · BEC 6 V</p>
+    </div>
+    <div class="seg" role="tablist" aria-label="View">
+      <button id="vTop" class="on" data-t="top">Component side</button>
+      <button id="vBot" data-t="bot">Solder side (mirrored)</button>
+      <button id="vCode" data-t="code">Code</button>
+      <button id="vTest" data-t="test">Test</button>
+      <button id="vDoku" data-t="docs">Docs</button>
+    </div>
+  </header>
+  <div id="pBoard" class="panel">
+  <div id="flt" class="chips" aria-label="Highlight net"></div>
+
+  <div class="main">
+    <div class="boardbox"><div id="board"></div></div>
+    <aside>
+      <section>
+        <h2>Parts</h2>
+        <table>
+          <tr><td>U1</td><td>ATtiny84A in 14-pin socket, c8–i11, notch on the left</td></tr>
+          <tr><td>LED</td><td>red, anode in a2, leg bent along row 2 on the back to d2 and soldered there; cathode in a3, leg bent on the back to a6</td></tr>
+          <tr><td>C1</td><td>100 nF ceramic, legs through b8 / b11, bent on the back to pin 14 / pin 1 and soldered only there</td></tr>
+          <tr><td>C2</td><td>10–100 µF electrolytic, 6.3 V or more, standing, + a5, − b5. Legs bent on the back to a6 and c5, no solder on a5 and b5</td></tr>
+          <tr><td>R1, R2</td><td>4k7, d4–d7 and e4–e7
+            <div class="bands" title="yellow violet red gold / yellow violet black brown brown"><b style="background:#f2c90f"></b><b style="background:#7b3fb0"></b><b style="background:#c62828"></b><b style="background:#c9a33a"></b><span>4-band</span><b style="background:#f2c90f"></b><b style="background:#7b3fb0"></b><b style="background:#1b1b1b"></b><b style="background:#7a4a1e"></b><b style="background:#7a4a1e"></b><span>5-band</span></div>
+            <div class="bands">yellow · violet · red · gold &nbsp;|&nbsp; yellow · violet · black · brown · brown</div></td></tr>
+          <tr><td>R3</td><td>1 k, i4–i7 (protects pin 8 if a plug is reversed)
+            <div class="bands"><b style="background:#7a4a1e"></b><b style="background:#1b1b1b"></b><b style="background:#c62828"></b><b style="background:#c9a33a"></b><span>4-band</span><b style="background:#7a4a1e"></b><b style="background:#1b1b1b"></b><b style="background:#1b1b1b"></b><b style="background:#7a4a1e"></b><b style="background:#7a4a1e"></b><span>5-band</span></div>
+            <div class="bands">brown · black · red · gold &nbsp;|&nbsp; brown · black · black · brown · brown</div></td></tr>
+          <tr><td>R4</td><td>10 k reset pull-up, c12–f12, legs bent on the back to pin 1 / pin 4 and soldered only there
+            <div class="bands"><b style="background:#7a4a1e"></b><b style="background:#1b1b1b"></b><b style="background:#ef7d1a"></b><b style="background:#c9a33a"></b><span>4-band</span><b style="background:#7a4a1e"></b><b style="background:#1b1b1b"></b><b style="background:#1b1b1b"></b><b style="background:#c62828"></b><b style="background:#7a4a1e"></b><span>5-band</span></div>
+            <div class="bands">brown · black · orange · gold &nbsp;|&nbsp; brown · black · black · red · brown</div></td></tr>
+          <tr><td>J1–J3</td><td>3-pin headers, columns d / e / i, − at the top</td></tr>
+          <tr><td>Rails</td><td>bare wire on the back, row 1 (GND) and row 2 (+6V), each from d to i</td></tr>
+        </table>
+      </section>
+      <section>
+        <h2>Wires on top (insulated)</h2>
+        <ul>
+          <li>GND: c5 → c1 on top. At c1 through to the back, bent to d1. At c5 through to the back, bent to pin 14 (c8)</li>
+          <li>VCC: a6 → a11 on top, through a11 to the back and bent to pin 1 (c11)</li>
+        </ul>
+      </section>
+      <section>
+        <h2>Check before inserting the chip</h2>
+        <ul>
+          <li>No solder on a2–a5, LED soldered only at d2 and a6</li><li>d2 ↔ a6: no continuity (only through the LED)</li>
+          <li>a6 ↔ c5 and pin 1 ↔ pin 14: no continuity</li><li>No solder on b5 (C2 soldered only at a6 and c5)</li>
+          <li>+6V ↔ pin 1: no continuity</li>
+          <li>With chip, powered: pin 1 ↔ 14 approx. 3.8–4.5 V</li>
+        </ul>
+      </section>
+      <section>
+        <h2>Other BEC voltages</h2>
+        <table>
+          <tr><td>5 V</td><td>1N4148 instead of the LED, band towards a3</td></tr>
+          <tr><td>6 V</td><td>red or yellow LED</td></tr>
+          <tr><td>7.4 V</td><td>white or blue LED</td></tr>
+        </table>
+      </section>
+    </aside>
+  </div>
+  <p class="note">Faint lines on the component side are solder bridges on the back. The solder side is mirrored, the way the board lies in front of you while soldering.</p>
+  </div>
+
+  <div id="pCode" class="panel" hidden>
+    <div class="codebox">
+      <div class="codebar"><span>ATinyCrawl.ino · ATTinyCore · 8 MHz internal</span><button class="btn" id="copy">Copy</button></div>
+      <pre id="src"><span class="c">/*
+  ATinyCrawl - RC speed limiter, ATtiny84A @ 8 MHz internal
+  ------------------------------------------------
+  Throttle channel in -&gt; PA0 (pin 13)
+  AUX channel in      -&gt; PA1 (pin 12)   knob/dial (stepless) or 2/3-position switch
+  ESC signal out      &lt;- PA5 / OC1B (pin 8)
+  Heartbeat LED       &lt;- PA3 (pin 10), optional, via 470R..1k to GND, blinks 2x/s
+
+  Forward throttle is scaled by the AUX channel (LIMIT_MIN_PCT..100%).
+  Reverse is limited too, but only LIMIT_REVERSE_STRENGTH % as strongly.
+
+  Timer1: prescaler 8 -&gt; 1 tick = 1 us, Fast PWM mode 14, TOP = 19999 -&gt; 50 Hz
+  The same timer timestamps the input pulses, so clock tolerance of the
+  internal oscillator cancels out (measured N ticks -&gt; output N ticks).
+
+  Board: ATTinyCore, "ATtiny24/44/84(a) (No bootloader)", 8 MHz internal,
+         millis()/micros() disabled (we kill Timer0 IRQ anyway).
+*/</span>
+
+#include &lt;avr/io.h&gt;
+#include &lt;avr/interrupt.h&gt;
+#include &lt;util/atomic.h&gt;
+
+#if F_CPU != 8000000L
+#error "Set clock to 8 MHz internal and run 'Burn Bootloader' once to set fuses."
+#endif
+
+<span class="c">// ================= CONFIG =================</span>
+const bool     FORWARD_IS_HIGH     = true;   <span class="c">// forward = pulse ABOVE neutral? flip if limiter acts on reverse</span>
+const bool     LIMIT_CH_REVERSED   = false;  <span class="c">// flip if the AUX channel works the wrong way round</span>
+const uint8_t  LIMIT_MIN_PCT       = 20;    <span class="c">// limit at AUX minimum (0 = car can't move forward at all)</span>
+const uint8_t  LIMIT_MAX_PCT       = 100;    <span class="c">// limit at AUX maximum</span>
+const uint8_t  LIMIT_REVERSE_STRENGTH = 50; <span class="c">// how strongly AUX limits REVERSE, in % of the forward effect:</span>
+                                             <span class="c">// 0 = reverse never limited, 100 = same limit as forward,</span>
+                                             <span class="c">// 50 = half the effect (forward 20 % -&gt; reverse 60 %)</span>
+const uint8_t  LIMIT_FAILSAFE_PCT  = 30;     <span class="c">// used if the AUX signal is lost</span>
+
+const uint16_t LIMIT_IN_LOW        = 1050;   <span class="c">// AUX pulse at min (us), slightly inside 1000</span>
+const uint16_t LIMIT_IN_HIGH       = 1950;   <span class="c">// AUX pulse at max (us), slightly inside 2000</span>
+                                             <span class="c">// -&gt; end values are reached even if the radio falls a bit short</span>
+
+const uint16_t NEUTRAL_DEFAULT     = 1500;   <span class="c">// placeholder, replaced by calibration before first use</span>
+const uint16_t NEUTRAL_CAL_MIN     = 1400;   <span class="c">// plausible window for auto-calibrated neutral</span>
+const uint16_t NEUTRAL_CAL_MAX     = 1600;
+
+const uint16_t PULSE_VALID_MIN     = 800;    <span class="c">// anything outside = glitch, ignored</span>
+const uint16_t PULSE_VALID_MAX     = 2200;
+const uint16_t OUT_MIN             = 900;    <span class="c">// hard clamp of output</span>
+const uint16_t OUT_MAX             = 2100;
+
+const bool     HEARTBEAT           = true;   <span class="c">// LED on pin 10. false = pin 10 stays an input (safe if bridged)</span>
+
+const uint8_t  TIMEOUT_FRAMES      = 5;      <span class="c">// 5 x 20 ms = 100 ms without signal -&gt; failsafe</span>
+const uint16_t FRAME_US            = 20000;  <span class="c">// 50 Hz output</span>
+<span class="c">// ==========================================</span>
+
+volatile uint16_t thrRise, limRise;
+volatile uint16_t thrPulse, limPulse;
+volatile bool     thrNew, limNew;
+volatile uint8_t  lastPA;
+volatile uint8_t  frames;                    <span class="c">// increments every 20 ms (Timer1 overflow)</span>
+
+static inline uint16_t elapsed(uint16_t now, uint16_t start) {
+  <span class="c">// TCNT1 counts 0..FRAME_US-1 and wraps</span>
+  return (now &gt;= start) ? (now - start) : (uint16_t)(now + FRAME_US - start);
+}
+
+ISR(PCINT0_vect) {
+  uint16_t now = TCNT1;
+  uint8_t pa = PINA;
+  uint8_t changed = pa ^ lastPA;
+  lastPA = pa;
+
+  if (changed &amp; _BV(PA0)) {
+    if (pa &amp; _BV(PA0)) thrRise = now;
+    else { thrPulse = elapsed(now, thrRise); thrNew = true; }
+  }
+  if (changed &amp; _BV(PA1)) {
+    if (pa &amp; _BV(PA1)) limRise = now;
+    else { limPulse = elapsed(now, limRise); limNew = true; }
+  }
+}
+
+ISR(TIM1_OVF_vect) {
+  frames++;
+}
+
+static void setOutput(uint16_t us) {
+  if (us &lt; OUT_MIN) us = OUT_MIN;
+  if (us &gt; OUT_MAX) us = OUT_MAX;
+  <span class="c">// OCR1B is a 16-bit register sharing TEMP with TCNT1 reads in the ISR -&gt; must be atomic.</span>
+  <span class="c">// Fast PWM: OCR1B is double-buffered, takes effect at next TOP (glitch-free).</span>
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { OCR1B = us - 1; }
+}
+
+<span class="c">// The ESC gets pulses ONLY while the receiver delivers a throttle signal.</span>
+<span class="c">// No signal -&gt; line stays LOW, exactly like a receiver without link.</span>
+<span class="c">// So the ESC sees the same thing as if it were plugged directly into the receiver,</span>
+<span class="c">// in any power-up order. On signal loss the ESC runs its own failsafe (motor off).</span>
+static bool outOn = false;
+
+static void outputEnable(bool on) {
+  if (on == outOn) return;
+  if (on) {
+    <span class="c">// connect OC1B right after a timer overflow, so the first pulse is complete</span>
+    uint8_t f0;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { f0 = frames; }
+    for (;;) { uint8_t f1; ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { f1 = frames; } if (f1 != f0) break; }
+    TCCR1A |= _BV(COM1B1);
+  } else {
+    TCCR1A &amp;= ~_BV(COM1B1);                    <span class="c">// pin falls back to PORTA bit = LOW</span>
+  }
+  outOn = on;
+}
+
+static bool pulseValid(uint16_t p) {
+  return p &gt;= PULSE_VALID_MIN &amp;&amp; p &lt;= PULSE_VALID_MAX;
+}
+
+static uint16_t neutral = NEUTRAL_DEFAULT;
+static bool     calibrated = false;
+
+<span class="c">// Neutral calibration runs inside loop(), so it does not depend on power-up order.</span>
+<span class="c">// Until it is done, the ESC gets NO pulses at all (like a receiver that is not yet</span>
+<span class="c">// bound). Its first pulse is therefore already the correctly limited signal.</span>
+<span class="c">// Neutral is taken from CAL_SAMPLES consecutive pulses that stay within CAL_SPREAD us</span>
+<span class="c">// of each other (trigger at rest) and inside the plausible window. Otherwise: retry.</span>
+const uint8_t  CAL_SAMPLES = 10;             <span class="c">// 10 pulses = 0.2 s at 50 Hz</span>
+const uint8_t  CAL_SPREAD  = 12;             <span class="c">// max. min/max spread in us while sampling</span>
+
+static void calibrateStep(uint16_t t) {
+  static uint32_t sum = 0;
+  static uint16_t lo = 0xFFFF, hi = 0;
+  static uint8_t  n = 0;
+  if (t &lt; lo) lo = t;
+  if (t &gt; hi) hi = t;
+  sum += t; n++;
+  if (hi - lo &gt; CAL_SPREAD || t &lt; NEUTRAL_CAL_MIN || t &gt; NEUTRAL_CAL_MAX) {
+    sum = 0; n = 0; lo = 0xFFFF; hi = 0;      <span class="c">// trigger moving or implausible -&gt; start over</span>
+    return;
+  }
+  if (n &gt;= CAL_SAMPLES) {
+    neutral = sum / n;
+    calibrated = true;
+  }
+}
+
+void setup() {
+  cli();
+  TIMSK0 = 0;                                  <span class="c">// kill Timer0 IRQ (millis) -&gt; less input jitter</span>
+
+  PORTA &amp;= ~_BV(PA5);                          <span class="c">// ESC line LOW = no pulses ...</span>
+  DDRA  |=  _BV(PA5);                          <span class="c">// ... until a throttle signal arrives (OC1B, pin 8)</span>
+  if (HEARTBEAT) DDRA |= _BV(PA3);             <span class="c">// heartbeat LED (pin 10)</span>
+  DDRA  &amp;= ~(_BV(PA0) | _BV(PA1));             <span class="c">// inputs</span>
+  PORTA &amp;= ~(_BV(PA0) | _BV(PA1));             <span class="c">// no pull-ups (external pull-downs optional)</span>
+
+  <span class="c">// Timer1: Fast PWM mode 14 (TOP = ICR1), clk/8 -&gt; 1 us. OC1B stays DISCONNECTED here;</span>
+  <span class="c">// it is connected only while a valid throttle signal is present (see outputEnable).</span>
+  TCCR1A = _BV(WGM11);
+  TCCR1B = _BV(WGM13) | _BV(WGM12) | _BV(CS11);
+  ICR1   = FRAME_US - 1;
+  OCR1B  = NEUTRAL_DEFAULT - 1;
+  TIMSK1 = _BV(TOIE1);
+
+  <span class="c">// Pin change interrupts on PA0, PA1</span>
+  PCMSK0 = _BV(PCINT0) | _BV(PCINT1);
+  GIMSK |= _BV(PCIE0);
+  lastPA = PINA;
+  sei();
+}
+
+void loop() {
+  static uint16_t thr = 0, lim = 0;
+  static uint8_t  thrSeen = 0, limSeen = 0;
+  static bool     thrEver = false, limEver = false;
+
+  uint8_t f; bool tn, ln; uint16_t t, l;
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+    f  = frames;
+    tn = thrNew; thrNew = false; t = thrPulse;
+    ln = limNew; limNew = false; l = limPulse;
+  }
+
+  <span class="c">// --- heartbeat: 2 Hz, 240 ms on / 260 ms off (one frame = 20 ms) ---</span>
+  static uint8_t lastF = 0, beat = 0;
+  beat += (uint8_t)(f - lastF);                 <span class="c">// frames since last loop</span>
+  lastF = f;
+  while (beat &gt;= 25) beat -= 25;                <span class="c">// 25 frames = 500 ms</span>
+  if (HEARTBEAT) { if (beat &lt; 12) PORTA |= _BV(PA3); else PORTA &amp;= ~_BV(PA3); }
+
+  if (tn &amp;&amp; pulseValid(t)) {
+    thr = t; thrSeen = f; thrEver = true;
+    if (!calibrated) calibrateStep(t);        <span class="c">// one sample per received pulse</span>
+  }
+  if (ln &amp;&amp; pulseValid(l)) { lim = l; limSeen = f; limEver = true; }
+
+  bool thrOk = thrEver &amp;&amp; (uint8_t)(f - thrSeen) &lt; TIMEOUT_FRAMES;
+  bool limOk = limEver &amp;&amp; (uint8_t)(f - limSeen) &lt; TIMEOUT_FRAMES;
+  <span class="c">// Forget stale values once timed out. Otherwise the 8-bit frame counter wraps</span>
+  <span class="c">// after 256 frames (5.12 s) and an old pulse would look "fresh" again briefly.</span>
+  <span class="c">// A new valid pulse sets the flag again -&gt; automatic recovery.</span>
+  if (!thrOk) thrEver = false;
+  if (!limOk) limEver = false;
+
+  <span class="c">// --- limit percentage from AUX channel ---</span>
+  uint8_t pct;
+  if (limOk) {
+    uint16_t span = LIMIT_IN_HIGH - LIMIT_IN_LOW;
+    uint16_t c = lim;
+    if (c &lt; LIMIT_IN_LOW)  c = LIMIT_IN_LOW;
+    if (c &gt; LIMIT_IN_HIGH) c = LIMIT_IN_HIGH;
+    uint32_t frac = c - LIMIT_IN_LOW;                       <span class="c">// 0..span</span>
+    if (LIMIT_CH_REVERSED) frac = span - frac;
+    pct = LIMIT_MIN_PCT + (uint8_t)((frac * (LIMIT_MAX_PCT - LIMIT_MIN_PCT)) / span);
+  } else {
+    pct = LIMIT_FAILSAFE_PCT;
+  }
+
+  <span class="c">// --- output ---</span>
+  uint16_t out;
+  if (!thrOk) {
+    outputEnable(false);                                    <span class="c">// no throttle signal -&gt; no pulses</span>
+    return;
+  } else if (!calibrated) {
+    outputEnable(false);                                    <span class="c">// not calibrated yet -&gt; no pulses</span>
+    return;
+  } else {
+    int16_t d = (int16_t)thr - (int16_t)neutral;
+    bool forward = FORWARD_IS_HIGH ? (d &gt; 0) : (d &lt; 0);
+    if (forward) {
+      d = (int16_t)(((int32_t)d * pct) / 100);
+    } else if (d != 0) {
+      uint8_t rpct = 100 - (uint8_t)(((uint16_t)(100 - pct) * LIMIT_REVERSE_STRENGTH) / 100);
+      d = (int16_t)(((int32_t)d * rpct) / 100);
+    }
+    out = (uint16_t)((int16_t)neutral + d);
+  }
+  setOutput(out);
+  outputEnable(true);
+}</pre>
+    </div>
+  </div>
+
+
+  <div id="pTest" class="panel" hidden>
+    <article class="doc wide">
+      <div class="testhead"><div><p class="note">Measure unpowered unless stated otherwise. Checkmarks are saved in this browser.</p><p class="note"><span class="req">Required</span> protects the chip, receiver or BEC from damage. The rest is optional: a fault there only means "doesn't work", not "broken".</p><label class="note" style="display:flex;gap:6px;align-items:center;margin-top:6px"><input type="checkbox" id="onlyMust"> Show required checks only</label></div><button class="btn" id="resetChk">Reset checkmarks</button></div>
+      <h3>1. Visual inspection</h3><table class="ptab"><tr class="th"><td></td><td>Points</td><td>Mode</td><td>Expected</td></tr><tr class="must"><td><input type="checkbox" id="a0" aria-label="done"></td><td>Solder joints under a magnifier, especially neighbouring socket pins <span class="req">Required</span></td><td><span class="mode m-vis">Visual</span></td><td>no solder strands, all joints shiny</td></tr><tr class="must"><td><input type="checkbox" id="a1" aria-label="done"></td><td>a2–a5, b5 <span class="req">Required</span></td><td><span class="mode m-vis">Visual</span></td><td>no solder, only legs passing through</td></tr><tr class="must"><td><input type="checkbox" id="a2" aria-label="done"></td><td>C2 polarity <span class="req">Required</span></td><td><span class="mode m-vis">Visual</span></td><td>light stripe (−) on b5</td></tr><tr><td><input type="checkbox" id="a3" aria-label="done"></td><td>LED polarity</td><td><span class="mode m-vis">Visual</span></td><td>flat side / short leg in a3</td></tr><tr><td><input type="checkbox" id="a4" aria-label="done"></td><td>Socket notch</td><td><span class="mode m-vis">Visual</span></td><td>left, next to pin 1 / 14</td></tr></table>
+      <h3>2. Continuity and shorts, without chip</h3><table class="ptab"><tr class="th"><td></td><td>Points</td><td>Mode</td><td>Expected</td></tr><tr><td><input type="checkbox" id="b0" aria-label="done"></td><td>d1 ↔ e1 ↔ i1 (all −)</td><td><span class="mode m-beep">Beep</span></td><td>GND rail continuous</td></tr><tr><td><input type="checkbox" id="b1" aria-label="done"></td><td>d2 ↔ e2 ↔ i2 (all +)</td><td><span class="mode m-beep">Beep</span></td><td>+6V rail continuous</td></tr><tr class="must"><td><input type="checkbox" id="b2" aria-label="done"></td><td>d1 ↔ d2 <span class="req">Required</span></td><td><span class="mode m-no">No beep</span></td><td>GND and +6V separate</td></tr><tr><td><input type="checkbox" id="b3" aria-label="done"></td><td>Pin 14 ↔ d1</td><td><span class="mode m-beep">Beep</span></td><td>chip GND on rail (wire c5 → c1 → d1)</td></tr><tr><td><input type="checkbox" id="b4" aria-label="done"></td><td>Pin 14 ↔ c5</td><td><span class="mode m-beep">Beep</span></td><td>C2 − on GND (leg b5 → c5)</td></tr><tr><td><input type="checkbox" id="b5" aria-label="done"></td><td>Pin 1 ↔ a6</td><td><span class="mode m-beep">Beep</span></td><td>VCC wire a6 → a11 ok</td></tr><tr class="must"><td><input type="checkbox" id="b6" aria-label="done"></td><td>Pin 1 ↔ Pin 14 <span class="req">Required</span></td><td><span class="mode m-no">No beep</span></td><td>no VCC/GND short. A short beep when connecting is C2 charging</td></tr><tr class="must"><td><input type="checkbox" id="b7" aria-label="done"></td><td>d2 ↔ Pin 1 <span class="req">Required</span></td><td><span class="mode m-no">No beep</span></td><td>LED not bridged</td></tr><tr><td><input type="checkbox" id="b8" aria-label="done"></td><td>d2 (+) → a6 (−)</td><td><span class="mode m-dio">Diode</span></td><td>approx. 1.6–1.9 V, LED may glow faintly</td></tr><tr><td><input type="checkbox" id="b9" aria-label="done"></td><td>a6 (+) → d2 (−)</td><td><span class="mode m-dio">Diode</span></td><td>OL, LED blocks (polarity ok)</td></tr></table>
+      <h3>3. Socket pins, without chip</h3><p class="note">Probe directly into the socket contacts. Pin 1 bottom left, pin 14 top left (notch on the left).</p><table class="ptab"><tr class="th"><td></td><td>Points</td><td>Mode</td><td>Expected</td></tr><tr><td><input type="checkbox" id="c0" aria-label="done"></td><td>Pin 13 ↔ d3 (THR S)</td><td><span class="mode m-ohm">Ω</span></td><td>4.7 kΩ</td></tr><tr><td><input type="checkbox" id="c1" aria-label="done"></td><td>Pin 12 ↔ e3 (AUX S)</td><td><span class="mode m-ohm">Ω</span></td><td>4.7 kΩ</td></tr><tr><td><input type="checkbox" id="c2" aria-label="done"></td><td>Pin 8 ↔ i3 (ESC S)</td><td><span class="mode m-ohm">Ω</span></td><td>1 kΩ</td></tr><tr><td><input type="checkbox" id="c3" aria-label="done"></td><td>Pin 4 ↔ Pin 1</td><td><span class="mode m-ohm">Ω</span></td><td>10 kΩ</td></tr><tr><td><input type="checkbox" id="c4" aria-label="done"></td><td>Pin 13 ↔ Pin 12</td><td><span class="mode m-no">No beep</span></td><td>inputs separate</td></tr><tr><td><input type="checkbox" id="c5" aria-label="done"></td><td>Pin 12 ↔ Pin 11</td><td><span class="mode m-no">No beep</span></td><td>no bridge to the unused pin</td></tr><tr><td><input type="checkbox" id="c6" aria-label="done"></td><td>Pin 9 ↔ Pin 8, Pin 8 ↔ i8</td><td><span class="mode m-no">No beep</span></td><td>only pin 8 on R3, neighbours free</td></tr><tr class="must"><td><input type="checkbox" id="c11" aria-label="done"></td><td>Pin 10 ↔ Pin 8, 9, 11 and 14 <span class="req">Required</span></td><td><span class="mode m-no">No beep</span></td><td>With HEARTBEAT = true, pin 10 is an output. A bridge to pin 8 corrupts the ESC signal, a bridge to pin 14 shorts the output</td></tr><tr><td><input type="checkbox" id="c7" aria-label="done"></td><td>Pin 1 ↔ Pin 2, Pin 4 ↔ Pin 3 / 5</td><td><span class="mode m-no">No beep</span></td><td>VCC and reset not on neighbouring pins</td></tr><tr><td><input type="checkbox" id="c8" aria-label="done"></td><td>Pin 13 ↔ Pin 14</td><td><span class="mode m-no">No beep</span></td><td>throttle input not on GND</td></tr><tr><td><input type="checkbox" id="c9" aria-label="done"></td><td>d3, e3, i3 ↔ d1</td><td><span class="mode m-no">No beep</span></td><td>signal pins not on GND</td></tr><tr class="must"><td><input type="checkbox" id="c10" aria-label="done"></td><td>d3, e3, i3 ↔ d2 <span class="req">Required</span></td><td><span class="mode m-no">No beep</span></td><td>signal pins not on +6V</td></tr></table>
+      <h3>4. Powered, without chip</h3><p class="note">Plug in only the ESC (supplies 6 V), battery connected. For the signal pins, also plug in the receiver.</p><table class="ptab"><tr class="th"><td></td><td>Points</td><td>Mode</td><td>Expected</td></tr><tr class="must"><td><input type="checkbox" id="d0" aria-label="done"></td><td>d2 ↔ d1 <span class="req">Required</span></td><td><span class="mode m-v">DC V</span></td><td>5.8–6.2 V (BEC)</td></tr><tr class="must"><td><input type="checkbox" id="d1" aria-label="done"></td><td>Pin 1 ↔ Pin 14 <span class="req">Required</span></td><td><span class="mode m-v">DC V</span></td><td>approx. 4.3–4.9 V. Without the chip almost no current flows, so slightly higher than later. Above 5.5 V: stop immediately</td></tr><tr><td><input type="checkbox" id="d2" aria-label="done"></td><td>Pin 4 ↔ Pin 14</td><td><span class="mode m-v">DC V</span></td><td>same as pin 1 (through 10 kΩ)</td></tr><tr><td><input type="checkbox" id="d3" aria-label="done"></td><td>Pin 13 ↔ Pin 14, radio on, throttle neutral</td><td><span class="mode m-v">DC V</span></td><td>approx. 0.2–0.3 V (1.5 ms / 20 ms pulse, averaged)</td></tr><tr><td><input type="checkbox" id="d4" aria-label="done"></td><td>Pin 12 ↔ Pin 14, move the AUX knob/switch</td><td><span class="mode m-v">DC V</span></td><td>value changes with AUX</td></tr></table>
+      <h3>5. With chip</h3><p class="note">Power off, insert the chip (notch on the left), power on again.</p><table class="ptab"><tr class="th"><td></td><td>Points</td><td>Mode</td><td>Expected</td></tr><tr><td><input type="checkbox" id="e0" aria-label="done"></td><td>Pin 1 ↔ Pin 14</td><td><span class="mode m-v">DC V</span></td><td>3.8–4.5 V</td></tr><tr><td><input type="checkbox" id="e1" aria-label="done"></td><td>Pin 8 ↔ Pin 14, radio on</td><td><span class="mode m-v">DC V</span></td><td>approx. 0.2–0.3 V, changes with throttle. 0 V while the radio is off (no pulses by design)</td></tr><tr><td><input type="checkbox" id="e2" aria-label="done"></td><td>LED</td><td><span class="mode m-vis">Visual</span></td><td>glows faintly</td></tr><tr><td><input type="checkbox" id="e3" aria-label="done"></td><td>Drive test, wheels in the air</td><td><span class="mode m-vis">Test</span></td><td>see Docs → First run</td></tr></table>
+    </article>
+  </div>
+  <div id="pDoku" class="panel" hidden>
+    <article class="doc">
+      <h3>What it does</h3>
+      <p>The ATtiny sits between receiver and ESC. It reads the throttle channel and an AUX channel (knob, dial or switch) and sends a new throttle signal to the ESC. Forward is scaled across the full trigger travel: AUX at 40 % means full trigger gives 40 % throttle. Reverse is limited too, but only half as strongly (adjustable with LIMIT_REVERSE_STRENGTH): AUX at 20 % gives 60 % in reverse.</p>
+      <pre>out = neutral + (throttle − neutral) × limit%   (forward; reverse weakened by LIMIT_REVERSE_STRENGTH)</pre>
+      <ul>
+        <li>Neutral is calibrated as soon as the first stable throttle signal arrives (10 pulses, approx. 0.2 s of untouched trigger). Power-up order does not matter. Until then the ESC gets no pulses at all, so its first pulse is already the correctly limited signal.</li>
+        <li>No throttle signal (radio off, cable unplugged): the ATtiny sends no pulses to the ESC, just like a receiver without a link. The ESC therefore behaves as if plugged directly into the receiver, in any power-up order, and stops via its own failsafe on signal loss.</li>
+        <li>AUX signal lost: limit drops to 30 %.</li>
+        <li>When a signal returns, normal operation resumes immediately (within one 20 ms frame).</li>
+        <li>Set the receiver failsafe for throttle to neutral (in the radio menu). If the receiver holds the last value on link loss, the ATtiny cannot detect it.</li>
+        <li>Timer1 both measures the inputs and generates the output, so the tolerance of the internal oscillator cancels out. No crystal needed.</li>
+      </ul>
+
+      <h3>Use cases</h3>
+      <table>
+        <tr><td>Walking pace</td><td>AUX on a knob or dial. Hold the trigger against the stop while walking, set the speed with the knob. Shaky trigger finger, steady car.</td></tr>
+        <tr><td>Bash / crawl switch</td><td>AUX on a 2-position switch: one position gives full speed, the other gives LIMIT_MIN_PCT for fine crawling with the full trigger travel. A 3-position switch adds a middle step (with the defaults: 20 / 60 / 100 %). No code change needed, a switch is just a knob with fixed positions.</td></tr>
+        <tr><td>Kids / beginners</td><td>AUX on a knob, start low and open it up step by step.</td></tr>
+      </table>
+
+      <h3>Compared to radio features</h3>
+      <p>Some radios offer similar functions built in. ATinyCrawl adds them to any radio with a free AUX channel, because it sits between receiver and ESC.</p>
+      <table>
+        <tr><td>Throttle limit in the radio</td><td>Caps maximum throttle, often in fixed steps on a switch. Depending on the radio it clips the top of the trigger travel instead of scaling it. ATinyCrawl always scales, so the full trigger travel is available for the reduced range.</td></tr>
+        <tr><td>Throttle EPA</td><td>Same idea, but set in a menu, not on the fly, and usually clipped rather than scaled.</td></tr>
+        <tr><td>Cruise control</td><td>Holds a set throttle without the trigger. ATinyCrawl deliberately does not do this: the trigger must be held, releasing it always stops the car. When walking, stumbling or dropping the radio should never leave the car driving on its own.</td></tr>
+      </table>
+
+      <h3>Pinout</h3>
+      <table>
+        <tr><td>Pin 13 (PA0)</td><td>Throttle channel from receiver, through 4k7</td></tr>
+        <tr><td>Pin 12 (PA1)</td><td>AUX channel from receiver (knob or switch), through 4k7</td></tr>
+        <tr><td>Pin 8 (PA5)</td><td>Output to ESC, OC1B, through 1 k</td></tr>
+        <tr><td>Pin 1 / 14</td><td>VCC from 6 V through LED / GND</td></tr>
+        <tr><td>Pin 4</td><td>Reset, 10 k to VCC</td></tr>
+        <tr><td>Pin 10 (PA3)</td><td>optional: heartbeat LED through 470 Ω–1 kΩ to GND, blinks twice per second (only with <code>HEARTBEAT = true</code>). Not fitted on the board. For the chip in the socket set <code>HEARTBEAT = false</code>, then pin 10 stays an input</td></tr>
+      </table>
+      <p class="note">All three headers: − at the top (board edge), + in the middle, signal at the bottom. Receiver and steering servo are powered through the board's rails.</p>
+
+      <h3>Programming</h3>
+      <p>Flash the chip with any ISP programmer, e.g. an Arduino as ISP on a breadboard (see the separate <i>attiny-isp-breadboard</i> guide). Program it off the board, never in the socket with ESC and receiver attached.</p>
+      <table>
+        <tr><td>Core</td><td>ATTinyCore</td></tr>
+        <tr><td>Board / chip</td><td><code>ATtiny24/44/84(a) (No bootloader)</code> / <code>ATtiny84(a)</code></td></tr>
+        <tr><td>Clock</td><td><code>8 MHz (internal)</code>. The sketch refuses to compile with any other clock</td></tr>
+        <tr><td>millis()/micros()</td><td><code>Disabled</code></td></tr>
+        <tr><td>BOD</td><td><code>2.7V</code></td></tr>
+        <tr><td>Fuses</td><td>Run <code>Burn Bootloader</code> once per new chip. Without it the chip runs at 1 MHz and every pulse is rejected</td></tr>
+        <tr><td>HEARTBEAT</td><td><code>true</code> on the breadboard to see the chip running, <code>false</code> for the chip that goes into the car</td></tr>
+      </table>
+
+      <h3>Configuration in the code</h3>
+      <table>
+        <tr><td>FORWARD_IS_HIGH</td><td>Limiter acts on reverse instead of forward? Set to <code>false</code></td></tr>
+        <tr><td>LIMIT_CH_REVERSED</td><td>AUX works the wrong way round? Set to <code>true</code></td></tr>
+        <tr><td>LIMIT_MIN_PCT</td><td>Limit at AUX minimum, default 20 %. Also the crawl speed when AUX is a switch. 0 means: car doesn't move forward at all</td></tr>
+        <tr><td>HEARTBEAT</td><td><code>true</code>: LED on pin 10 blinks 2×/s, handy on the breadboard. <code>false</code> for the chip in the car</td></tr>
+        <tr><td>LIMIT_REVERSE_STRENGTH</td><td>How strongly AUX limits reverse, in % of the forward effect. Default 50: forward 20 % → reverse 60 %. 0 = reverse never limited, 100 = same as forward</td></tr>
+        <tr><td>LIMIT_FAILSAFE_PCT</td><td>Limit when the AUX signal is lost, default 30</td></tr>
+        <tr><td>LIMIT_IN_LOW/HIGH</td><td>AUX pulse width at its end positions, default 1050 / 1950 µs (slightly inside 1000/2000 so the end values are always reached)</td></tr>
+        <tr><td>CAL_SAMPLES</td><td>Pulses used for neutral calibration, default 10 (≈ 0.2 s at 50 Hz)</td></tr>
+      </table>
+
+      <h3>First run</h3>
+      <ol>
+        <li><b>Radio:</b> assign a knob, dial or switch to a free AUX channel, EPA 100/100, no mixing. Set the receiver failsafe for throttle to neutral.</li>
+        <li><b>Wiring, power off:</b> receiver throttle channel to header d, AUX channel to header e, ESC to header i. Minus wire at the top on all three.</li>
+        <li><b>Board without chip:</b> go through the Test tab, steps 1 to 4. Step 4 is the only one with power on.</li>
+        <li><b>Power off</b> (ESC switched off or battery unplugged). Only then insert the chip, notch on the left. Never insert or remove the chip while powered.</li>
+        <li><b>Wheels in the air</b> or pinion removed. Switch on the radio, then the car.</li>
+        <li><b>Test:</b> AUX at max behaves like no limiter, AUX at min gives 20 % forward and 60 % reverse, unplugging the AUX cable gives 30 %, unplugging the throttle cable stops the motor. Both power-up orders (radio first / car first) must be quiet at standstill.</li>
+        <li>Recalibrating the ESC is normally not needed, the limiter passes the neutral point through unchanged. If you do recalibrate, set AUX to max.</li>
+      </ol>
+
+      <h3>Voltage variants</h3>
+      <p>Target is 4.0 to 4.5 V at the ATtiny. The part in a2/a3 drops the BEC voltage by its forward voltage.</p>
+      <table>
+        <tr><td>5 V BEC</td><td>1N4148, band towards a3, approx. 4.4 V</td></tr>
+        <tr><td>6 V BEC</td><td>red or yellow LED, approx. 4.1 V</td></tr>
+        <tr><td>7.4 V BEC</td><td>white or blue LED, approx. 4.4 V, measure to confirm</td></tr>
+      </table>
+
+      <h3>Bypass</h3>
+      <p>If the board fails or gets wet: unplug the receiver patch cable and the ESC plug and join them with a piece of pin header (3 pins, plastic carrier pushed to the middle). Keep the adapter on the chassis next to the board.</p>
+
+      <h3>Troubleshooting</h3>
+      <table>
+        <tr><td>Nothing happens</td><td>Measure pin 1 ↔ 14. Fuses set (Burn Bootloader)?</td></tr>
+        <tr><td>Car twitches</td><td>Input level too marginal, VCC too high? Measure the receiver signals</td></tr>
+        <tr><td>No full throttle any more</td><td>AUX at max? Recalibrate the ESC with AUX at max</td></tr>
+        <tr><td>Limit acts on reverse</td><td><code>FORWARD_IS_HIGH = false</code></td></tr>
+        <tr><td>ESC: red LED flashes fast, only cell beeps, no long tone</td><td>ESC gets no valid signal. Check cables (throttle on d, AUX on e, ESC on i), pin 8 ↔ i3 (1 kΩ), shorts between d3 and d2, pin 10 bridges or <code>HEARTBEAT = false</code></td></tr>
+        <tr><td>Power LED brightness pulses with the heartbeat</td><td>Pin 10 is loaded, probably a solder bridge to pin 8/9 or GND</td></tr>
+        <tr><td>Car creeps or hums at standstill</td><td>Trigger touched during calibration: power-cycle. Or the ESC was calibrated with an older firmware: recalibrate once</td></tr>
+        <tr><td>Need to see the real signals</td><td>Use a servo pulse meter, e.g. an Arduino with a small <code>pulseIn()</code> sketch printing pulse width and period. Connect its GND to board GND and its inputs to pins 8 (ESC out), 13 (THR) and 12 (AUX). Expected: 1000–2000 µs pulses, ~20 000 µs period</td></tr>
+      </table>
+    </article>
+  </div>
+</div>
+
+<script>
+const P=36,M=72,T=56,N={gnd:['#9a968c','GND'],v6:['#e24b4a','+6V'],vcc:['#ef9f27','VCC'],ch2:['#378add','THR'],ch34:['#639922','AUX'],esc:['#7f77dd','ESC'],rst:['#d4537e','RST']};
+let mir=false,sel='all';
+const bot=[['gnd',[[3,1],[8,1]]],['v6',[[3,2],[8,2]]],['v6',[[0,2],[3,2]]],['gnd',[[2,1],[3,1]]],['gnd',[[2,5],[2,6],[2,7],[2,8]]],['gnd',[[1,8],[2,8]]],['vcc',[[0,3],[0,4],[0,5],[0,6]]],['gnd',[[1,5],[2,5]]],['vcc',[[0,11],[1,11],[2,11],[2,12]]],['rst',[[5,11],[5,12]]],['ch2',[[3,3],[3,4]]],['ch2',[[3,7],[3,8]]],['ch34',[[4,3],[4,4]]],['ch34',[[4,7],[4,8]]],['esc',[[8,3],[8,4]]],['esc',[[8,7],[8,8]]]];
+const topw=[['gnd',[[2,5],[2,1]]],['vcc',[[0,6],[0,11]]]];
+const pads=[['gnd',[[3,1],[4,1],[8,1],[2,5]]],['v6',[[3,2],[4,2],[8,2]]],['ch2',[[3,3],[3,4],[3,7]]],['ch34',[[4,3],[4,4],[4,7]]],['esc',[[8,3],[8,4],[8,7]]],['vcc',[[0,6]]],];
+const pin={14:'gnd',13:'ch2',12:'ch34',8:'esc',1:'vcc',4:'rst'};
+const X=c=>mir?M+(8-c)*P:M+c*P,Y=r=>T+(r-1)*P;
+const g=(n,s)=>`<g data-net="${n}">${s}</g>`;
+const pl=(p,col,w,op)=>`<polyline points="${p.map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" opacity="${op}"/>`;
+const tx=(x,y,s,f,a,ex)=>`<text x="${x}" y="${y}" font-size="11" fill="${f||'#f1efe8'}" text-anchor="${a||'middle'}" dominant-baseline="central" font-family="IBM Plex Mono,monospace" ${ex||''}>${s}</text>`;
+function rbody(x,y,h,id,bc){const L=86,Wc=26,Wm=19,C=19;
+const R=(a,w,l,rr)=>h?`<rect x="${x-L/2+a}" y="${y-w/2}" width="${l}" height="${w}" rx="${rr}"/>`:`<rect x="${x-w/2}" y="${y-L/2+a}" width="${w}" height="${l}" rx="${rr}"/>`;
+const shape=R(0,Wc,C,9)+R(C-4,Wm,L-2*C+8,2)+R(L-C,Wc,C,9);
+const bands=bc.map((col,i)=>{let a=L*[.13,.27,.39,.8][i];if(h&&mir)a=L-a-5;return h?`<rect x="${x-L/2+a}" y="${y-Wc/2}" width="5" height="${Wc}" fill="${col}"/>`:`<rect x="${x-Wc/2}" y="${y-L/2+a}" width="${Wc}" height="5" fill="${col}"/>`;}).join('');
+return `<clipPath id="${id}">${shape}</clipPath><g fill="#e8d9b5">${shape}</g><g clip-path="url(#${id})">${bands}</g>`;}
+function res(c,r1,r2,lab,n,bc){const x=X(c),cy=(Y(r1)+Y(r2))/2;return g(n,`<line x1="${x}" y1="${Y(r1)}" x2="${x}" y2="${Y(r2)}" stroke="#d3d1c7" stroke-width="2"/>`+rbody(x,cy,false,'rb'+c,bc)+tx(x,cy+7,lab,'#412402','middle',`transform="rotate(-90 ${x} ${cy+7})"`));}
+function comps(){let s='';const d=mir?-1:1;
+topw.forEach(([n,p])=>s+=g(n,pl(p,'#2c2c2a',9,1)+pl(p,N[n][0],5,1)));
+[[3,'THR','ch2'],[4,'AUX','ch34'],[8,'ESC','esc']].forEach(([c,l,sn],k)=>{const pinr=i=>`<rect x="${X(c)-5}" y="${Y(i)-5}" width="10" height="10" fill="#ef9f27"/>`;const lx=k==0?X(c)-4*d:k==1?X(c)+6*d:X(c),an=k==2?'middle':((k==0)==(d>0)?'end':'start');
+s+=g(sn,`<rect x="${X(c)-12}" y="${Y(1)-12}" width="24" height="${2*P+24}" rx="3" fill="#1e1e1c"/>`+pinr(3)+`<text x="${lx}" y="${Y(1)-34}" font-size="11" fill="var(--fg)" text-anchor="${an}" dominant-baseline="central" font-family="IBM Plex Sans,sans-serif">${l}</text>`)+g('gnd',pinr(1))+g('v6',pinr(2));});
+s+=g('v6',`<line x1="${X(0)}" y1="${Y(2)}" x2="${X(0)}" y2="${Y(3)}" stroke="#d3d1c7" stroke-width="2"/><circle cx="${X(0)}" cy="${(Y(2)+Y(3))/2}" r="12" fill="#e24b4a"/><line x1="${X(0)-12}" y1="${(Y(2)+Y(3))/2+9}" x2="${X(0)+12}" y2="${(Y(2)+Y(3))/2+9}" stroke="#791f1f" stroke-width="2"/>`+tx(X(0)-24*d,(Y(2)+Y(3))/2,'LED','var(--fg)',d>0?'end':'start'));
+s+=g('vcc',`<line x1="${X(0)}" y1="${Y(5)}" x2="${X(1)}" y2="${Y(5)}" stroke="#d3d1c7" stroke-width="2"/>`+(()=>{const cx=(X(0)+X(1))/2,cy=Y(5),R=30,ri=22,a=55*Math.PI/180,o=d>0?0:Math.PI,pt=(r,t)=>`${cx+r*Math.cos(o+t)},${cy+r*Math.sin(o+t)}`;
+return `<circle cx="${cx}" cy="${cy}" r="${R}" fill="#185fa5"/><path d="M${pt(R,-a)} A${R} ${R} 0 0 1 ${pt(R,a)} L${pt(ri,a)} A${ri} ${ri} 0 0 0 ${pt(ri,-a)}Z" fill="#b5d4f4"/><circle cx="${cx}" cy="${cy}" r="${ri}" fill="#b4b2a9"/><path d="M${cx-12} ${cy}H${cx+12}M${cx} ${cy-12}V${cy+12}" stroke="#888780" stroke-width="2"/>`+tx(cx+d*26,cy,'−','#0c447c')+tx(cx-d*26,cy,'+')+tx(cx,cy+15,'C2','#2c2c2a');})());
+s+=g('vcc',`<line x1="${X(1)}" y1="${Y(8)}" x2="${X(1)}" y2="${Y(11)}" stroke="#d3d1c7" stroke-width="2"/><ellipse cx="${X(1)}" cy="${(Y(9)+Y(10))/2}" rx="11" ry="16" fill="#ef9f27"/>`+tx(X(1),(Y(9)+Y(10))/2,'C1','#412402'));
+const B47=['#f2c90f','#7b3fb0','#c62828','#c9a33a'],B1k=['#7a4a1e','#1b1b1b','#c62828','#c9a33a'];
+s+=res(3,4,7,'R1','ch2',B47)+res(4,4,7,'R2','ch34',B47)+res(8,4,7,'R3','esc',B1k);
+const rx=(X(2)+X(5))/2;s+=g('rst',`<line x1="${X(2)}" y1="${Y(12)}" x2="${X(5)}" y2="${Y(12)}" stroke="#d3d1c7" stroke-width="2"/>`+rbody(rx,Y(12),true,'rbR4',['#7a4a1e','#1b1b1b','#ef7d1a','#c9a33a'])+tx(rx+(mir?-7:7),Y(12),'R4','#412402'));
+s+=g('none',`<rect x="${Math.min(X(2),X(8))-16}" y="${Y(8)-15}" width="${6*P+32}" height="${3*P+30}" rx="4" fill="#2c2c2a"/><circle cx="${X(2)-16*d}" cy="${(Y(9)+Y(10))/2}" r="8" fill="#8a6a3a"/>`+tx((X(2)+X(8))/2,(Y(9)+Y(10))/2,'ATtiny84A'));
+const cp=(c,r,num,ty)=>{const n=pin[num]||'none';return g(n,`<rect x="${X(c)-5}" y="${Y(r)-5}" width="10" height="10" fill="${n=='none'?'#b4b2a9':N[n][0]}"/>`+(mir?'':tx(X(c),Y(r)+ty,num)));};
+for(let i=0;i<7;i++)s+=cp(i+2,8,14-i,17)+cp(i+2,11,i+1,-17);
+return s;}
+function draw(){
+const W=M+8*P+56,H=Y(12)+50;let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Lochraster-Layout">`;
+s+=`<rect x="${M-22}" y="${T-22}" width="${8*P+44}" height="${11*P+44}" rx="8" fill="#8a6a3a" stroke="#6e5229" stroke-width="2"/>`;
+for(let r=1;r<=12;r++){s+=`<text x="${M-34}" y="${Y(r)}" font-size="12" fill="var(--muted)" text-anchor="end" dominant-baseline="central" font-family="IBM Plex Mono,monospace">${r}</text>`;for(let c=0;c<9;c++)s+=`<circle cx="${X(c)}" cy="${Y(r)}" r="7" fill="#c8a96a"/><circle cx="${X(c)}" cy="${Y(r)}" r="2.5" fill="#4a3418"/>`;}
+for(let c=0;c<9;c++)s+=`<text x="${X(c)}" y="${Y(12)+36}" font-size="12" fill="var(--muted)" text-anchor="middle" font-family="IBM Plex Mono,monospace">${'abcdefghi'[c]}</text>`;
+bot.forEach(([n,p])=>s+=g(n,pl(p,N[n][0],mir?7:4,mir?1:.4)));
+if(mir){s+=`<g opacity=".3">${comps()}</g>`;
+pads.forEach(([n,a])=>a.forEach(q=>s+=g(n,`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="8" fill="#d3d1c7" stroke="${N[n][0]}" stroke-width="2"/>`)));
+for(let i=0;i<7;i++)[[i+2,8,14-i],[i+2,11,i+1]].forEach(([c,r,num])=>{const n=pin[num]||'none';s+=g(n,`<circle cx="${X(c)}" cy="${Y(r)}" r="9" fill="#d3d1c7" stroke="${n=='none'?'#5f5e5a':N[n][0]}" stroke-width="2"/>`+tx(X(c),Y(r),num,'#2c2c2a'));});}
+else s+=comps();
+document.getElementById('board').innerHTML=s+'</svg>';apply();}
+function apply(){document.querySelectorAll('#board g[data-net]').forEach(e=>e.style.opacity=(sel=='all'||e.dataset.net==sel)?1:.15);document.querySelectorAll('#flt .chip').forEach(b=>b.classList.toggle('on',b.dataset.n==sel));}
+const f=document.getElementById('flt');
+f.innerHTML=`<button class="chip on" data-n="all">Alle</button>`+Object.entries(N).map(([k,v])=>`<button class="chip" data-n="${k}"><i style="background:${v[0]}"></i>${v[1]}</button>`).join('');
+f.addEventListener('click',e=>{const b=e.target.closest('button');if(b){sel=b.dataset.n;apply();}});
+const tabs=document.querySelectorAll('.seg button'),pB=document.getElementById('pBoard'),pC=document.getElementById('pCode'),pD=document.getElementById('pDoku'),pT=document.getElementById('pTest');
+function show(t){tabs.forEach(b=>b.classList.toggle('on',b.dataset.t==t));pB.hidden=!(t=='top'||t=='bot');pC.hidden=t!='code';pD.hidden=t!='docs';pT.hidden=t!='test';if(!pB.hidden){mir=t=='bot';draw();}}
+tabs.forEach(b=>b.onclick=()=>show(b.dataset.t));
+document.getElementById('copy').onclick=async e=>{const pre=document.getElementById('src');try{await navigator.clipboard.writeText(pre.textContent);e.target.textContent='Copied';}catch(_){const r=document.createRange();r.selectNodeContents(pre);const s=getSelection();s.removeAllRanges();s.addRange(r);e.target.textContent='Selected, press Ctrl+C';}setTimeout(()=>e.target.textContent='Copy',1800);};
+document.querySelectorAll('.ptab input').forEach(c=>{try{c.checked=localStorage.getItem('chk_'+c.id)=='1'}catch(_){}c.addEventListener('change',()=>{try{localStorage.setItem('chk_'+c.id,c.checked?'1':'0')}catch(_){}})});
+document.getElementById('onlyMust').onchange=e=>document.getElementById('pTest').classList.toggle('onlymust',e.target.checked);
+document.getElementById('resetChk').onclick=()=>document.querySelectorAll('.ptab input').forEach(c=>{c.checked=false;try{localStorage.removeItem('chk_'+c.id)}catch(_){}});
+const h=location.hash.slice(1);show(['code','docs','bot','test'].includes(h)?h:'top');
+</script>
