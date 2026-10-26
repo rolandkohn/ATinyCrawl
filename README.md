@@ -45,24 +45,26 @@ Releasing the trigger always stops the car. ATinyCrawl deliberately has no cruis
 Perfboard, 9 × 12 holes (approx. 23 × 30 mm). Full layout, parts list with colour codes and a printable 1:1 template: [`hardware/ATinyCrawl_Perfboard.pdf`](hardware/ATinyCrawl_Perfboard.pdf).
 Interactive layout with net highlighting, test checklist and full docs: [`docs/index.html`](docs/index.html).
 
-| Part | Value |
-|---|---|
-| U1 | ATtiny84A-PU in DIP-14 socket |
-| R1, R2 | 4k7 (THR and AUX inputs) |
-| R3 | 1 k (ESC output, protects the pin against a reversed plug) |
-| R4 | 10 k reset pull-up |
-| C1 | 100 nF ceramic |
-| C2 | 10–100 µF electrolytic, ≥ 6.3 V |
-| LED | drops the BEC voltage to ~4 V for the ATtiny and shows power |
-| J1–J3 | 3-pin headers: THR, AUX, ESC |
+| Part | Value | Also ok |
+|---|---|---|
+| U1 | ATtiny84A-PU in DIP-14 socket | ATtiny84. ATtiny44A/24A should work too (sketch: 1.4 KB flash, 35 B RAM; builds, not tested on hardware) |
+| R1, R2 | 4k7 (THR and AUX inputs) | 1 k–10 k, they don't have to match |
+| R3 | 1 k (ESC output, protects the pin against a reversed plug) | 330 Ω–2k2 |
+| R4 | 10 k reset pull-up | 4k7–47 k |
+| C1 | 100 nF ceramic | any ceramic 47 nF–1 µF |
+| C2 | 10–100 µF electrolytic, ≥ 6.3 V | 4.7–220 µF, or a 10 µF ceramic/tantalum |
+| LED | drops the BEC voltage to ~4 V for the ATtiny and shows power | see the table below |
+| J1–J3 | 3-pin headers: THR, AUX, ESC | any 2.54 mm pin header, straight or angled |
 
 The LED sets the supply voltage. Pick it by your BEC voltage:
 
-| BEC | Part instead of / as the LED | ATtiny gets |
-|---|---|---|
-| 5 V | 1N4148 diode | ≈ 4.4 V |
-| 6 V | red or yellow LED | ≈ 4.1 V |
-| 7.4 V | white or blue LED | ≈ 4.4 V, measure to confirm |
+| BEC | Part instead of / as the LED | ATtiny gets | Also ok |
+|---|---|---|---|
+| 5 V | 1N4148 diode | ≈ 4.4 V | 1N4001–1N4007 (≈ 4.3 V), 1N5817/1N5819 (≈ 4.7 V), wire bridge (5 V, no power indicator) |
+| 6 V | red or yellow LED | ≈ 4.1 V | orange or classic green LED (1.7–2.2 V forward voltage). Not white, blue or bright green |
+| 7.4 V | white or blue LED | ≈ 4.4 V, measure to confirm | |
+
+Whatever you use: measure the supply at the chip socket (pin 1 ↔ pin 14) before inserting the chip. 3.0–5.5 V works, 4.0–4.5 V is the sweet spot.
 
 A 3D-printable enclosure (M3 × 16 screw) is in [`hardware/enclosure`](hardware/enclosure).
 
@@ -90,7 +92,7 @@ Set the receiver failsafe for throttle to neutral. If the receiver holds the las
 | millis()/micros() | Disabled |
 | BOD | 2.7 V |
 
-Run *Burn Bootloader* once per new chip to set the fuses, then *Upload Using Programmer* (e.g. an Arduino as ISP). Program the chip off the board, never with ESC and receiver attached.
+Run *Burn Bootloader* once per new chip to set the fuses, then *Upload Using Programmer*. A matching programmer you can build in ten minutes: [attiny-isp-breadboard](https://github.com/rolandkohn/attiny-isp-breadboard) (Arduino Nano as ISP on a half-size breadboard, no soldering). Program the chip off the board, never with ESC and receiver attached.
 
 Main settings at the top of the sketch:
 
