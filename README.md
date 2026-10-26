@@ -13,7 +13,7 @@ Built for walking with a crawler: hold the trigger against its stop, set the spe
 
 - **Scaled, not clipped:** the full trigger travel maps onto the reduced speed range, so fine control gets better at low limits.
 - **Works with any radio** that has a free AUX channel. No radio-side mixing or EPA tricks.
-- **Knob or switch:** a knob gives stepless control, a 2-position switch gives *crawl / full speed*, a 3-position switch gives three steps.
+- **Knob, switch or button:** a knob gives stepless control, a 2-position switch gives *crawl / full speed*, a 3-position switch gives three steps. Most AUX push buttons toggle between high and low on each press and work like a 2-position switch (a button that only holds while pressed would limit only while you press it).
 - **Reverse limited too**, by default half as strongly as forward (adjustable).
 - **Power-up order does not matter:** neutral is calibrated from the first stable throttle signal. Until then the ESC gets no pulses, exactly like a receiver without a link.
 - **Failsafe:** no throttle signal, no pulses, so the ESC's own failsafe stops the car. Lost AUX signal falls back to a safe limit.
@@ -73,7 +73,7 @@ A 3D-printable enclosure (M3 × 16 screw) is in [`hardware/enclosure`](hardware/
 | Header | Connect to |
 |---|---|
 | THR | receiver throttle channel |
-| AUX | receiver channel with the knob, dial or switch (EPA 100/100, no mixing) |
+| AUX | receiver channel with the knob, dial, switch or button (EPA 100/100, no mixing) |
 | ESC | ESC signal cable |
 
 All headers: minus at the board edge. Receiver and steering servo are powered through the board's rails, so the BEC current passes through the board.
