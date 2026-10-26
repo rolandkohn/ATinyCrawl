@@ -419,7 +419,7 @@ void loop() {
   <div id="pDoku" class="panel" hidden>
     <article class="doc">
       <h3>What it does</h3>
-      <p>The ATtiny sits between receiver and ESC. It reads the throttle channel and an AUX channel (knob, dial or switch) and sends a new throttle signal to the ESC. Forward is scaled across the full trigger travel: AUX at 40 % means full trigger gives 40 % throttle. Reverse is limited too, but only half as strongly (adjustable with LIMIT_REVERSE_STRENGTH): AUX at 20 % gives 60 % in reverse.</p>
+      <p>The ATtiny sits between receiver and ESC. It reads the throttle channel and an AUX channel (knob, dial, switch or push button) and sends a new throttle signal to the ESC. Forward is scaled across the full trigger travel: AUX at 40 % means full trigger gives 40 % throttle. Reverse is limited too, but only half as strongly (adjustable with LIMIT_REVERSE_STRENGTH): AUX at 20 % gives 60 % in reverse.</p>
       <pre>out = neutral + (throttle − neutral) × limit%   (forward; reverse weakened by LIMIT_REVERSE_STRENGTH)</pre>
       <ul>
         <li>Neutral is calibrated as soon as the first stable throttle signal arrives (10 pulses, approx. 0.2 s of untouched trigger). Power-up order does not matter. Until then the ESC gets no pulses at all, so its first pulse is already the correctly limited signal.</li>
@@ -434,6 +434,7 @@ void loop() {
       <table>
         <tr><td>Walking pace</td><td>AUX on a knob or dial. Hold the trigger against the stop while walking, set the speed with the knob. Shaky trigger finger, steady car.</td></tr>
         <tr><td>Bash / crawl switch</td><td>AUX on a 2-position switch: one position gives full speed, the other gives LIMIT_MIN_PCT for fine crawling with the full trigger travel. A 3-position switch adds a middle step (with the defaults: 20 / 60 / 100 %). No code change needed, a switch is just a knob with fixed positions.</td></tr>
+        <tr><td>Push button</td><td>Most AUX push buttons toggle between high and low on each press, so they work exactly like a 2-position switch: one press crawl, next press full speed. A button that only holds while pressed would limit only while you press it.</td></tr>
         <tr><td>Kids / beginners</td><td>AUX on a knob, start low and open it up step by step.</td></tr>
       </table>
 
@@ -482,7 +483,7 @@ void loop() {
 
       <h3>First run</h3>
       <ol>
-        <li><b>Radio:</b> assign a knob, dial or switch to a free AUX channel, EPA 100/100, no mixing. Set the receiver failsafe for throttle to neutral.</li>
+        <li><b>Radio:</b> assign a knob, dial, switch or push button to a free AUX channel, EPA 100/100, no mixing. Set the receiver failsafe for throttle to neutral.</li>
         <li><b>Wiring, power off:</b> receiver throttle channel to header d, AUX channel to header e, ESC to header i. Minus wire at the top on all three.</li>
         <li><b>Board without chip:</b> go through the Test tab, steps 1 to 4. Step 4 is the only one with power on.</li>
         <li><b>Power off</b> (ESC switched off or battery unplugged). Only then insert the chip, notch on the left. Never insert or remove the chip while powered.</li>
